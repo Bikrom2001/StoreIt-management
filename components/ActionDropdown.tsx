@@ -18,9 +18,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { actionsDropdownItems } from "@/constants";
+import { renameFile } from "@/lib/actions/file.actions";
 import { constructDownloadUrl } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -33,6 +35,8 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [emails, setEmails] = useState<string[]>([]);
 
+  const path = usePathname();
+
   const closeAllModals = () => {
     setIsModalOpen(false);
     setIsDropdownOpen(false);
@@ -43,6 +47,18 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
 
   const handleAction = async () => {
     if (!action) return;
+    setIsLoading(true);
+    let success = false;
+
+    const actions = {
+      rename: () =>
+        renameFile({ fileId: file.$id, name, extension: file.extension, path }),
+      share: () => console.log("share"),
+      delete: () => console.log("delet"),
+    };
+    success = await actions[action.value as keyof typeof actions]();
+    if (success) closeAllModals();
+    setIsLoading(false);
   };
 
   const renderDialogContent = () => {
